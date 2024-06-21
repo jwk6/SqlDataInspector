@@ -8,17 +8,13 @@ export const loadWebView = () => {
         .toString();
 
     const jqueryScript = fs
-        .readFileSync(path.join(__dirname, 'web', 'jquery-3.6.0.min.js'))
+        .readFileSync(path.join(__dirname, 'web', 'jquery-3.7.0.min.js'))
         .toString();
 
     const indexScript = fs
         .readFileSync(path.join(__dirname, 'web', 'index.js'))
         .toString();
-    
-    const iconsCss = fs
-        .readFileSync(path.join(__dirname, 'web', 'fabric-icons-inline.css'))
-        .toString();
-    
+
     const styleCss = fs
         .readFileSync(path.join(__dirname, 'web', 'index.css'))
         .toString();
@@ -34,12 +30,7 @@ export const loadWebView = () => {
     );
 
     htmlView = htmlView.replace(
-        '<!-- ICONS CSS PLACEHOLDER -->',
-        `<style>\n${iconsCss}\n</style>`
-    );
-
-    htmlView = htmlView.replace(
-        '<!-- CSS PLACEHOLDER -->',
+        '<link rel="stylesheet" href="index.css">',
         `<style>\n${styleCss}\n</style>`
     );
 

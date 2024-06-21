@@ -1,5 +1,7 @@
 //@import (css) "debug-theme.css";
 
+@import "fabric-icons-inline";
+
 * {
     margin: 0;
     padding: 0;
@@ -48,6 +50,22 @@ input[type=checkbox] {
     border-color: var(--vscode-checkbox-border);
 }
 
+input[type=text] {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+}
+
+select {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+}
+
+option {
+    background-color: var(--vscode-menu-background);
+    color: var(--vscode-menu-foreground);
+    font-size: 11pt;
+}
+
 textarea {
     resize: none;
     flex-grow: 1;
@@ -68,6 +86,7 @@ button {
     font-size: 9pt;
     cursor: pointer;
     border-radius: 0;
+    transition: background-color 0.15s;
 
     &.default {
         font-weight: bold;
@@ -94,9 +113,38 @@ label {
     border-right-color: #888;
     border-radius: 22px;
     -webkit-animation: rotate 1s infinite linear;
+    animation: rotate 1s infinite linear;
     position: absolute;
     left: 50%;
     top: 50%;
+    z-index: 101;
+}
+
+#liveMonitoring {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    &.enabled {
+		right: 170px;
+	}
+
+    label {
+        margin-right: 10px;
+    }
+}
+
+#refreshTimer {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    display: none;
+
+	select {
+		height: 19px;
+		font-size: 9pt;
+		margin-left: 4px;
+	}
 }
 
 #loadingOverlay {
@@ -106,11 +154,18 @@ label {
     bottom: 0;
     right: 0;
     background-color: transparent;
+    z-index: 100;
 }
 
 @-webkit-keyframes rotate {
     100% {
         -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
     }
 }
 
@@ -153,9 +208,20 @@ label {
             border-right: 1px solid var(--vscode-titleBar-activeBackground);
         }
 
-        .col, .col1, .col2 {
+        .col, .col1, .col2, .col3 {
             overflow: hidden;
             display: table-cell;
+        }
+
+        .sortable {
+            cursor: pointer;
+            position: relative;
+        }
+
+        i {
+            position: absolute;
+            right: 2px;
+            top: 7px;
         }
     }
 
@@ -163,6 +229,7 @@ label {
         display: table;
         table-layout: fixed;
         width: 100%;
+        transition: color 0.15s, background-color 0.15s;
         
         > div {
             text-overflow: ellipsis;
@@ -171,7 +238,7 @@ label {
             border-bottom: 1px solid var(--vscode-titleBar-inactiveBackground);
         }
         
-        .col, .col1, .col2 {
+        .col, .col1, .col2, .col3 {
             overflow: hidden;
             display: table-cell;
         }
@@ -179,12 +246,16 @@ label {
         &:hover {
             background-color: var(--vscode-list-hoverBackground);
             color: var(--vscode-list-hoverForeground);
-        }        
+        }     
+        
+        &.hidden {
+            display: none;
+        }
     }
 
     .selected, .selected:hover {
-        background-color: var(--vscode-list-focusBackground);
-        color: var(--vscode-list-focusForeground);
+        background-color: var(--vscode-list-inactiveSelectionBackground);
+        color: var(--vscode-list-inactiveSelectionForeground);
     }    
 }
 
@@ -220,19 +291,25 @@ label {
 
     h1 {
         font-size: 14pt;
+        display: inline-block;
+        margin-right: 280px;
+    }
+
+    #objectNamePart {
+        display: none;
+        white-space: nowrap;
     }
 }
 
-#status {
-    position: absolute;
-    top: 4px;
-    right: 8px;
+#workspace {
+    display: grid;
+    grid-template-rows: 40% 60%;
+    height: 100%;
 }
 
 #navigation {    
-    display: flex;
-    flex-direction: row;
-    flex-grow: 5;
+    display: grid;
+    grid-template-columns: 37% 28% 35%;
 
     select {
         position: absolute;
@@ -248,40 +325,155 @@ label {
     }
 }
 
-#tables {
-    flex-grow: 3;
+#data {
+    display: flex;
+    flex-direction: column;
+}
+
+#objects {
     position: relative;
 
     .col1 {
-        width: 60%;
+        width: 50%;
     }
     
     .col2 {
-        width: 40%;
+        width: 30%;
+    }
+
+    .col3 {
+        width: 20%;
+    }
+
+    h2 {
+        label {
+            font-weight: 10pt;
+            top: 0px
+        }
+
+        input[type=checkbox] {
+            position: relative;
+            top: 2px;
+        }
     }
 }
 
 #columns {
-    flex-grow: 3;
     position: relative;
+
+    .col1 {
+        width: 55%;
+    }
+    
+    .col2 {
+        width: 45%;
+    }
+
+    .primary-key {
+        font-weight: bold;
+    }
 }
 
 #values {
-    flex-grow: 4;
     position: relative;
+
+    .col1 {
+        width: 80%;
+    }
+    
+    .col2 {
+        width: 20%;
+    }
+
+    .count {
+        display: inline-block;
+        min-width: auto;
+        margin-right: 10px;
+    }
+
+    h2 {
+        button {
+            cursor: pointer;
+            padding: 2px 4px;
+            float: right;
+            border: none;
+            transition: color 0.15s, background-color 0.15s;
+
+            span {
+                margin-left: 6px;
+                font-size: 9pt;
+                position: relative;
+                top: -1px;
+            }
+
+            i {
+                position: relative;
+                top: 1px;
+            }
+    
+            &:hover {
+                color: var(--vscode-button-secondaryForeground);
+                background-color: var(--vscode-button-secondaryHoverBackground);
+            }
+        }
+    }
+}
+
+#btnCopyValues {
 }
 
 #filters {
-    flex-grow: 2;
     display: flex;
     flex-direction: row;
+    min-height: 128px;
+
+    &.filter-closed {
+        display: none;
+    }
+}
+
+#filtersHeader {
+    cursor: pointer;
+    margin: 8px 8px 0 8px;
+    transition: color 0.15s, background-color 0.15s;
+
+    .btn-hide-filters {
+        display: inline-block;
+    }
+
+    .btn-show-filters {
+        display: none;
+    }
+
+    i {
+        margin-right: 4px;
+        padding: 3px;
+        width: 20px;
+    }
+
+    &:hover {
+        color: var(--vscode-button-secondaryForeground);
+        background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+
+    &.filter-closed {
+        background-color: var(--vscode-titleBar-activeBackground);
+
+        .btn-hide-filters {
+            display: none;
+        }
+
+        .btn-show-filters {
+            display: inline-block;
+        }
+    }
 }
 
 #filtersArea {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding: 8px;
+    padding: 0 8px 8px 8px;
 
     > div {
         height: 100%;
@@ -299,7 +491,7 @@ label {
 
     .controls {
         position: absolute;
-        top: 30px;
+        top: 3px;
         left: 8px;
         right: 8px
     }
@@ -311,7 +503,7 @@ label {
 }
 
 #dataRows {
-    flex-grow: 4;
+    flex-grow: 1;
     position: relative;
 
     h2 {
@@ -325,9 +517,14 @@ label {
             width: 200px;
         }
 
+        .row-index {
+            width: 60px;
+            text-align: center;
+        }
+
         .selected, .selected:hover {
-            background-color: var(--vscode-list-focusBackground);
-            color: var(--vscode-list-focusForeground);
+            background-color: var(--vscode-list-inactiveSelectionBackground);
+            color: var(--vscode-list-inactiveSelectionForeground);
         }
     }
 
@@ -391,8 +588,8 @@ label {
         }
 
         .selected, .selected:hover {
-            background-color: var(--vscode-list-focusBackground);
-            color: var(--vscode-list-focusForeground);
+            background-color: var(--vscode-list-inactiveSelectionBackground);
+            color: var(--vscode-list-inactiveSelectionForeground);
 
             .col2 {
                 background-color: var(--vscode-list-activeSelectionBackground);
@@ -430,14 +627,215 @@ label {
             top: 0;
             right: 0;
             height: 30px;
-            background-color: rgb(201, 5, 63);
+            background-color: #c9053f;
             border-color: var(--vscode-titleBar-activeBackground);
             color: white;
             padding: 4px 8px;
+            transition: background-color 0.15s;
+
+            &:hover {
+                background-color: #e81123;
+            }
+
+            i {
+                position: relative;
+                top: 2px;
+            }
         }
     }
 
     .body {
         padding: 8px;
+    }
+}
+
+#objectTypes {
+    position: absolute;
+    left: 40px;
+}
+
+#objectFilters {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    white-space: nowrap;
+    background-color: var(--vscode-editor-background);
+
+    i {
+        position: relative;
+        top: 1px;
+    }
+
+    span {
+        font-size: 9pt;
+    }
+
+    select {
+        position: unset;
+        width: auto;
+        min-width: 100px;
+        height: 18px;
+        font-size: 9pt;
+    }
+
+    .ms-Icon--FilterSolid {
+        display: none;
+    }
+
+    &.schema .ms-Icon--Filter {
+        display: none;
+    }
+
+    &.schema .ms-Icon--FilterSolid {
+        display: inline-block;
+    }
+}
+
+#objectSearch {
+    position: absolute;
+    top: 9px;
+    left: 8px;
+    height: 18px;
+    background-color: var(--vscode-editor-background);
+    padding-top: 1px;
+    transition: width 0.15s;
+    width: 0%;
+    min-width: 20px;
+
+    &.opened {
+        width: 50%;
+    }
+
+    button {
+        border: none;
+        cursor: pointer;
+        padding: 3px;
+        margin: 0;
+        transition: color 0.15s, background-color 0.15s;
+        position: relative;
+        top: -1px;
+
+        &:hover {
+            color: var(--vscode-button-secondaryForeground);
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+    }
+
+    > div {
+        position: absolute;
+        top: 0px;
+        left: 20px;
+        right: 0px;
+        height: 18px;
+        overflow: hidden;
+    }
+
+    input {
+        border: 1px solid var(--vscode-panel-border);
+        font-size: 12px;
+        height: 18px;
+        padding: 3px;
+        width: 100%;
+        outline: none;
+    }
+
+    #clearObjectSearch {
+        position: absolute;
+        right: 1px;
+        top: 3px;
+        bottom: 0px;
+        cursor: pointer;
+        color: var(--vscode-input-foreground);
+        background-color: var(--vscode-input-background);
+        transition: color 0.15s, background-color 0.15s;
+        width: 16px;
+        height: 16px;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: 2px;
+
+        i {
+            font-size: 12px;
+            position: relative;
+            top: -3px;
+        }
+
+        &:hover {
+            background-color: var(--vscode-input-foreground);
+            color: var(--vscode-input-background);
+        }
+    }
+}
+
+#rowsPageSize {
+    display: inline-block;
+    position: absolute;
+    right: 8px;
+}
+
+#rowsPager {
+    display: none;
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    overflow: hidden;
+    height: 21px;
+
+    li {
+        display: inline-block;
+        min-width: 50px;
+        height: 21px;
+        text-align: center;
+        cursor: pointer;
+        transition: color 0.15s, background-color 0.15s;
+
+        &:hover, &.clicked {
+            background-color: var(--vscode-list-hoverBackground);
+            color: var(--vscode-list-hoverForeground);
+        }
+
+        &.hidden {
+            display: none;
+        }
+
+        &.selected {
+            background-color: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+        }
+
+        &.page {
+            font-size: 9pt;
+
+            span {
+                position: relative;
+                top: 1px;
+            }
+        }
+
+        i {
+            position: relative;
+            top: 3px;
+        }
+
+        &.left-button, &.right-button {
+            visibility: hidden;
+
+            &.visible {
+                visibility: visible;
+            }
+        }        
+    }
+
+    &.show-left-buttons {
+        .left-button {
+            visibility: visible;
+        }
+    }
+
+    &.show-right-buttons {
+        .right-button {
+            visibility: visible;
+        }
     }
 }

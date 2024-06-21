@@ -1,6 +1,11 @@
+.github/**
 .vscode/**
 .vscode-test/**
-out/test/**
+images/screen*.*
+node_modules/**
+dist/test/**
+dist/web/*.less
+dist/web/debug-theme.css
 src/**
 .gitignore
 vsc-extension-quickstart.md
